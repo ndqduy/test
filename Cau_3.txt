@@ -1,0 +1,33 @@
+Bước 0: Câu Query tính tuổi
+SELECT (YEAR(CURDATE()) - YEAR(ngay_sinh)) AS Tuoi from tbl_danh_sach
+
+Bước 1: Tạo table trung gian có các cột như sau, thuật ngữ temporary: trung gian, tạm thời
+
+
+create table tmp_diem_thi_tong_hop select tbl_danh_sach.SBD, Ho, Ten, Phai, (YEAR(CURDATE()) - YEAR(ngay_sinh)) AS Tuoi, Toan, Van, anh_van, diem_ut, Least(Toan,Van,anh_van) AS DTN, Toan + Van + anh_van + diem_ut As Tong_Diem from tbl_danh_sach
+   left join tbl_chi_tiet_dt on tbl_danh_sach.DTDT = tbl_chi_tiet_dt.doi_tuong_DT
+   left join tbl_diem_thi on tbl_danh_sach.SBD = tbl_diem_thi.SBD
+order by SBD;
+
+
+Bước 2: Tạo query tính cột xep_loai 
+
+select SBD, Ho, Ten, Phai, Tuoi, Toan, Van, anh_van, diem_ut, DTN, tong_diem, IF(tong_diem >= 24 AND DTN >= 7,"Gioi",
+IF(tong_diem >= 21 AND DTN >= 6, "Kha",
+IF(tong_diem >= 15 AND DTN >= 4, "Trung binh", "Chua Dat"))) 
+As Xep_Loai from tmp_diem_thi_tong_hop order by SBD;
+
+
+Bước 3: Tạo table chính thức tbl_diem_thi_tong_hop
+# Xóa bảng
+DROP TABLE tbl_diem_thi_tong_hop;
+
+# Tạo bảng tbl_diem_tong_hop
+CREATE TABLE tbl_diem_thi_tong_hop select tmp_diem_thi_tong_hop.SBD, Ho, Ten, Phai, Tuoi, Toan, Van, anh_van, diem_ut, DTN,Tong_Diem,IF(tong_diem >= 24 AND DTN >= 7,"Gioi",
+										IF(tong_diem >= 21 AND DTN >= 6, "Kha",
+										IF(tong_diem >= 15 AND DTN >= 4, "Trung binh", "Chua Dat"))) 
+										As Xep_Loai from tmp_diem_thi_tong_hop
+order by SBD;
+
+# Xem dữ liệu trong bảng
+SELECT * FROM tbl_diem_thi_tong_hop;
